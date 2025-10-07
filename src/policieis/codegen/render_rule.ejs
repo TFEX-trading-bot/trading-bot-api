@@ -1,0 +1,50 @@
+<%
+  // helper to render right-side value or indicator
+  function rightExpr(r) {
+    if (r.right.type === 'VALUE') {
+      return String(r.right.value ?? 0);
+    } else {
+      const key = (r.right.indicator || 'SMA') + String(r.right.period || 14);
+      return `ind.get("${key}")`;
+    }
+  }
+
+  function leftExpr(r) {
+    const key = (r.indicator || 'RSI') + String(r.period || 14);
+    return `ind.get("${key}")`;
+  }
+
+  function single(r) {
+    const left = leftExpr(r);
+    const right = rightExpr(r);
+
+    switch (r.op) {
+      case 'CROSS_ABOVE':
+        return `crossed_above(state.get("prev_${r.indicator}${r.period}"), ${left}, ${right})`;
+      case 'CROSS_BELOW':
+        return `crossed_below(state.get("prev_${r.indicator}${r.period}"), ${left}, ${right})`;
+      case 'GREATER':
+        return `(${left}) is not None and (${right}) is not None and (${left}) > (${right})`;
+      case 'LESS':
+        return `(${left}) is not None and (${right}) is not None and (${left}) < (${right})`;
+      case 'GE':
+        return `(${left}) is not None and (${right}) is not None and (${left}) >= (${right})`;
+      case 'LE':
+        return `(${left}) is not None and (${right}) is not None and (${left}) <= (${right})`;
+      default:
+        return `False`;
+    }
+  }
+
+  function logic(r) {
+    const me = single(r);
+    const ands = (r.and || []).map(logic);
+    const ors  = (r.or  || []).map(logic);
+
+    let cond = me;
+    if (ands.length) cond = `(${cond}) and (${ands.join(' and ')})`;
+    if (ors.length)  cond = `(${cond}) or (${ors.join(' or ')})`;
+    return cond;
+  }
+
+-%><%- logic(r) -%>

@@ -1,52 +1,40 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Bot } from './entities/bot.entity';
-import { CreateBotDto } from './dto/create-bot.dto';
-import { UpdateBotDto } from './dto/update-bot.dto';
+import { Repository, DataSource } from 'typeorm';
+import { Bot } from './bot.entity';
+import { Policy } from 'src/policieis/policy.entity';
+// import { K8sService } from '../k8s/k8s.K8sService';
 
 @Injectable()
 export class BotsService {
   constructor(
-    @InjectRepository(Bot)
-    private botsRepository: Repository<Bot>,
+    private readonly ds: DataSource,
+    @InjectRepository(Bot) private botsRepo: Repository<Bot>,
+    @InjectRepository(Policy) private policiesRepo: Repository<Policy>,
+    // private readonly k8s: K8sService,
   ) {}
 
-  create(createBotDto: CreateBotDto): Promise<Bot> {
-    const bot = this.botsRepository.create(createBotDto);
-    return this.botsRepository.save(bot);
+  async create(dto: any) {
+    // 1) สร้างบอท
+    const bot = this.botsRepo.create({ user_id: dto.userId, symbol: dto.symbol });
+    await this.botsRepo.save(bot);
+
+    // 2) บันทึก policy version 1
+    const pol = this.policiesRepo.create({ bot, rules: dto.policy.rules, version: 1 });
+    await this.policiesRepo.save(pol);
+
+    // 3) สั่ง K8s/Helm ให้ deploy instance bot
+    // await this.k8s.deployBot({
+    //   botId: bot.id,
+    //   userId: dto.userId,
+    //   symbol: dto.symbol,
+    //   // env ที่ container ต้องใช้ (DATABASE_URL, REDIS_URL, EXCHANGE_TZ ฯลฯ)
+    // });
+
+    return { botId: bot.id };
   }
 
-  findAll(): Promise<Bot[]> {
-    return this.botsRepository.find({ relations: ['user', 'strategy'] });
-  }
-
-  async findOne(id: number): Promise<Bot> {
-    const bot = await this.botsRepository.findOne({
-      where: { id_bot: id },
-      relations: ['user', 'strategy', 'order_history'],
-    });
-    if (!bot) {
-      throw new NotFoundException(`Bot with ID ${id} not found`);
-    }
-    return bot;
-  }
-
-  async update(id: number, updateBotDto: UpdateBotDto): Promise<Bot> {
-    const bot = await this.botsRepository.preload({
-      id_bot: id,
-      ...updateBotDto,
-    });
-    if (!bot) {
-      throw new NotFoundException(`Bot with ID ${id} not found`);
-    }
-    return this.botsRepository.save(bot);
-  }
-
-  async remove(id: number): Promise<void> {
-    const result = await this.botsRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Bot with ID ${id} not found`);
-    }
+  async get(id: string) {
+    return this.botsRepo.findOne({ where: { id }, relations: ['policies'] });
   }
 }

@@ -1,0 +1,22 @@
+from typing import Dict, Any
+from enum import Enum
+
+<%- include('helpers.ejs') -%>
+
+def next_action(tick: Dict[str, Any], state: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    tick: {
+      "price": float,
+      "indicators": { "RSI14": 58.0, "SMA20": 501.3, ... }
+    }
+    state: dict (kept by the bot between ticks)
+    """
+    price = tick.get("price")
+    ind = tick.get("indicators") or {}
+
+<% rules.forEach(function(rule){ -%>
+    # -- rule priority=<%= rule.priority %>
+    if <%- include('render_rule.ejs', {r: rule}) %>:
+        return {"action": "<%= rule.action %>", "reason": "rule <%= rule.priority %>"}
+<% }) -%>
+    return {"action": "HOLD", "reason": "no rule matched"}
