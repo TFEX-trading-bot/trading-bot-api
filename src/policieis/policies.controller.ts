@@ -1,13 +1,8 @@
-// src/policieis/policies.controller.ts
-import {
-  Controller,
-  Post, Body, UsePipes, ValidationPipe,
-  Get, Param, Query, // <<< ต้อง import มาด้วย
-} from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, Body, UsePipes, ValidationPipe } from '@nestjs/common';
 import { PoliciesService } from './policies.service';
 import { CreatePolicyDto } from './dto/create-policy.dto';
 
-@Controller('policies') // ถ้า main.ts มี globalPrefix('api') แล้ว path จะเป็น /api/policies
+@Controller('policies') // เส้นทางจริงคือ /api/policies เพราะเราตั้ง globalPrefix('api')
 export class PoliciesController {
   constructor(private readonly policies: PoliciesService) {}
 
@@ -19,15 +14,13 @@ export class PoliciesController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.policies.findOne(id);
+  findOne(@Param('id') id: string) {
+    // ต้อง return จาก service (อย่า return 1 หรืออย่าลืม return)
+    return this.policies.findOne(id); // +id ให้เป็น number
   }
 
   @Get()
-  async findAll(
-    @Query('botId') botId?: string,
-    @Query('userId') userId?: string,
-  ) {
+  findAll(@Query('botId') botId?: string, @Query('userId') userId?: string) {
     return this.policies.findAll({ botId, userId });
   }
 }
