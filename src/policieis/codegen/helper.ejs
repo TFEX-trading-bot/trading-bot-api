@@ -1,0 +1,16 @@
+class Action(str, Enum):
+    BUY = "BUY"
+    SELL = "SELL"
+    HOLD = "HOLD"
+
+def crossed_above(prev_val, cur_val, threshold):
+    return prev_val is not None and cur_val is not None and prev_val <= threshold and cur_val > threshold
+
+def crossed_below(prev_val, cur_val, threshold):
+    return prev_val is not None and cur_val is not None and prev_val >= threshold and cur_val < threshold
+
+def crossed_above_series(prev, cur):
+    return prev is not None and cur is not None and prev <= 0 and cur > 0
+
+def crossed_below_series(prev, cur):
+    return prev is not None and cur is not None and prev >= 0 and cur < 0
