@@ -1,53 +1,38 @@
-// src/policies/dto/create-policy.dto.ts
-// import { IsArray, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsArray, ValidateNested, IsInt, Min, IsIn, IsNumber,
+  IsOptional, IsString, IsUUID
+} from 'class-validator';
 
-// export class CreatePolicyDto {
-//   @IsString() botId!: string;
-//   @IsString() userId!: string;
-//   @IsString() symbol!: string;
+export class RuleDto {
+  @IsInt() priority!: number;
 
-//   @IsArray()
-//   rules!: any[]; // ใช้ any ไปก่อน เดี๋ยวค่อยทำ schema ตามจริง
-// }
+  @IsString() indicator!: string;      // e.g. 'RSI'
+  @IsInt() period!: number;            // e.g. 14
 
-// src/policies/dtos/create-policy.dto.ts
+  @IsIn(['CROSS_ABOVE','CROSS_BELOW']) op!: 'CROSS_ABOVE' | 'CROSS_BELOW';
 
+  @IsIn(['VALUE','INDICATOR']) right_type!: 'VALUE' | 'INDICATOR';
 
-// import { IsArray, IsString, IsUUID, ValidateNested } from 'class-validator';
-// import { Type } from 'class-transformer';
-// import { RuleDto } from './rule.dto';
-// export class CreatePolicyDto {
-//   @IsUUID()
-//   botId!: string;
+  @IsNumber() right_value!: number;
 
-//   @IsString()
-//   userId!: string;
-
-//   @IsString()
-//   symbol!: string;
-
-//   @IsArray()
-//   @ValidateNested({ each: true })
-//   @Type(() => RuleDto)
-//   rules!: RuleDto[];
-// }
-
-
-// create-policy.dto.ts
-import { IsUUID, IsString, IsArray, IsOptional, IsIn, IsInt, Min } from 'class-validator';
+  @IsIn(['BUY','SELL']) action!: 'BUY' | 'SELL';
+}
 
 export class CreatePolicyDto {
-  @IsUUID() botId: string;
-  @IsUUID() userId: string;
-  @IsString() symbol: string;
+  @IsUUID() botId!: string;
 
-  @IsArray() rules: Array<{
-    priority: number;
-    indicator: string;
-    period: number;
-    op: 'CROSS_ABOVE' | 'CROSS_BELOW';
-    right_type: 'VALUE' | 'INDICATOR';
-    right_value?: number;
-    action: 'BUY' | 'SELL';
-  }>;
+  @IsUUID() userId!: string;
+
+  @IsString() symbol!: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => RuleDto)
+  rules!: RuleDto[];
+
+  // ถ้าจะส่ง version มาด้วย
+  @IsInt()
+  @IsOptional()
+  version?: number;
 }

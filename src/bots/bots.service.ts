@@ -16,7 +16,7 @@ export class BotsService {
 
   async create(dto: any) {
     // 1) สร้างบอท
-    const bot = this.botsRepo.create({ user_id: dto.userId, symbol: dto.symbol });
+    const bot = this.botsRepo.create({ userId: dto.userId, symbol: dto.symbol });
     await this.botsRepo.save(bot);
 
     // 2) บันทึก policy version 1

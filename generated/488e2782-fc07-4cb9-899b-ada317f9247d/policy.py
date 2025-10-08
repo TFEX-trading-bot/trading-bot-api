@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# bot: <%= botId %> | user: <%= userId %> | symbol: <%= symbol %> | version: <%= version %>
-# generated at: <%= generatedAt %>
+# bot: 488e2782-fc07-4cb9-899b-ada317f9247d | user: 6faa39f4-86fa-4ada-a92e-6a52d929b941 | symbol: PTT | version: 10
+# generated at: 2025-10-08T06:00:04.776Z
 
 from typing import List, Dict, Any
 
@@ -13,7 +13,17 @@ def evaluate_policy(candles: List[Dict[str, Any]]) -> Dict[str, Any]:
     action = 'HOLD'
 
     # ------- rules from DB -------
-    rules = <%- JSON.stringify(rules, null, 2) %>
+    rules = [
+  {
+    "priority": 1,
+    "indicator": "RSI",
+    "period": 14,
+    "op": "CROSS_ABOVE",
+    "right_type": "VALUE",
+    "right_value": 30,
+    "action": "BUY"
+  }
+]
     # -----------------------------
 
     # ตัวอย่าง logic mock: ถ้า indicator == 'RSI' และ op == 'CROSS_ABOVE' ให้ BUY

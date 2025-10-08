@@ -1,26 +1,48 @@
-import { Controller, Get, Post, Param, Query, Body, UsePipes, ValidationPipe } from '@nestjs/common';
-import { PoliciesService } from './policies.service';
-import { CreatePolicyDto } from './dto/create-policy.dto';
+import { join } from 'path';
+import { existsSync } from 'fs';
+import {
+  NotFoundException,
+  Res,
+  Param,
+  Get,
+  Post,          // ← เพิ่ม
+  Body,          // ← เพิ่ม
+  Query,         // ← เพิ่ม
+  Controller,
+  UsePipes,
+  ValidationPipe,
+  ParseIntPipe
+} from '@nestjs/common';
+import { Response } from 'express';
 
-@Controller('policies') // เส้นทางจริงคือ /api/policies เพราะเราตั้ง globalPrefix('api')
+import { PoliciesService } from './policies.service';
+import { CreatePolicyDto } from './dto/create-policy.dto'; // ← เพิ่ม import DTO
+
+@Controller('policies')
 export class PoliciesController {
   constructor(private readonly policies: PoliciesService) {}
 
-  @Post()
-  @UsePipes(new ValidationPipe({ whitelist: true }))
-  async create(@Body() dto: CreatePolicyDto) {
-    const row = await this.policies.create(dto);
-    return { ok: true, id: row.id };
+  @Get(':botId/policy.py')
+  async download(@Param('botId') botId: string, @Res() res: Response) {
+    const filePath = join(process.cwd(), 'generated', String(botId), 'policy.py');
+    if (!existsSync(filePath)) throw new NotFoundException('policy.py not found');
+    return res.sendFile(filePath);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    // ต้อง return จาก service (อย่า return 1 หรืออย่าลืม return)
-    return this.policies.findOne(id); // +id ให้เป็น number
+  findOne(@Param('id', ParseIntPipe) id: number) {   // << เปลี่ยนเป็น number + ParseIntPipe
+    return this.policies.findOne(id);
   }
 
   @Get()
   findAll(@Query('botId') botId?: string, @Query('userId') userId?: string) {
     return this.policies.findAll({ botId, userId });
+  }
+
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  @Post()
+  create(@Body() dto: CreatePolicyDto) {
+    console.log(dto)
+    return this.policies.create(dto);
   }
 }

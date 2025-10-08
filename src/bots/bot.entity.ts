@@ -1,15 +1,23 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Policy } from 'src/policieis/policy.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn } from 'typeorm';
+import { Policy } from '../policieis/policy.entity'; // <-- ตรวจ path ให้ถูก
 
 @Entity('bots')
 export class Bot {
-  @PrimaryGeneratedColumn('uuid') id!: string;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
-  @Column() user_id!: string;           // map กับผู้ใช้ในระบบเว็บ (u1)
-  @Column() symbol!: string;            // PTT
-  @Column({ default: 'ACTIVE' }) status!: 'ACTIVE' | 'PAUSED' | 'STOPPED';
+  @Column({ name: 'user_id' })
+  userId!: string;
 
-  @OneToMany(() => Policy, (p) => p.bot) policies!: Policy[];
+  @Column({ name: 'app_code' })
+  appCode!: string;
 
-  @CreateDateColumn({ type: 'timestamptz' }) created_at!: Date;
+  @Column()
+  symbol!: string;
+
+  @OneToMany(() => Policy, (p) => p.bot)
+  policies!: Policy[];
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt!: Date;
 }
