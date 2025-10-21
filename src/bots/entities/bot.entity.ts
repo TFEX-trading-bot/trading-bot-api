@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { BotStatus } from '../dto/create-bot.dto';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('bots')
 export class Bot {
@@ -51,4 +52,7 @@ export class Bot {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @ManyToOne(() => User, (user) => user.bots, { nullable: true, onDelete: 'SET NULL' })
+  user?: User;
 }
