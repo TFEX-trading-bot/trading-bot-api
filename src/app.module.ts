@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { BotsModule } from './bots/bots.module';
 import { join } from 'path';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { join } from 'path';
       synchronize: true,
     }),
     BotsModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
