@@ -1,29 +1,32 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { BotsModule } from './bots/bots.module';
-import { join } from 'path';
-import { UsersModule } from './users/users.module';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthController } from './auth/auth.controller';
+import { AuthService } from './auth/auth.service';
+import { User } from './users/entities/user.entity';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    // 1. ต่อ Database (ผ่าน Tunnel Port 5434)
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '5432', 10),
-      username: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASS || '12345678',
-      database: process.env.DB_NAME || 'trading_bot',
-      entities: [join(__dirname, '**', '*.entity.{ts,js}')],
-      synchronize: true,
+      host: 'localhost',
+      port: 5434, // ✅ Port ที่เราทำ SSH Tunnel ไว้
+      username: 'admin',
+      password: 'mysecretpassword',
+      database: 'tradingbot_db',
+      entities: [User],
+      synchronize: false, // ⚠️ สำคัญ: อย่าเปิด true บน Production เดี๋ยวตารางหาย (ให้ Python จัดการ Schema)
     }),
-    BotsModule,
-    UsersModule,
+    TypeOrmModule.forFeature([User]),
+    
+    // 2. ตั้งค่า JWT Secret (ต้องตรงกับ Python เป๊ะๆ!)
+    JwtModule.register({
+      secret: 'supersecretkey_change_me_in_production', // 🔑 KEY ต้องตรงกับ Python
+      signOptions: { expiresIn: '1h' },
+    }),
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AuthController],
+  providers: [AuthService],
 })
 export class AppModule {}
