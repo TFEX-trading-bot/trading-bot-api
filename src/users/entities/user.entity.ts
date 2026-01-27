@@ -1,24 +1,25 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Bot } from '../../bots/entities/bot.entity';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
 
-@Entity('users')
+@Entity({ name: 'users' }) // ชื่อตารางต้องตรงกับ Python (users)
 export class User {
   @PrimaryGeneratedColumn()
-  id_user: number;
+  id: number;
+
+  @Column({ unique: true })
+  username: string;
 
   @Column({ unique: true })
   email: string;
 
-  @Column()
-  password: string;
+  @Column({ name: 'password_hash' }) // Map ชื่อ column ให้ตรงกับ Python
+  passwordHash: string;
 
-  @Column()
+  @Column({ nullable: true })
   name: string;
 
-  @Column()
-  account_number: string;
+  @Column({ name: 'account_number', nullable: true })
+  accountNumber: string;
 
-  @OneToMany(() => Bot, (bot) => bot.user)
-  bots: Bot[];
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 }
- 
