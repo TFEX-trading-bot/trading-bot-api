@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from 'src/users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -28,15 +28,15 @@ export class AuthService {
     // 3. สร้าง Username จาก Email
     const username = email.split('@')[0];
 
-    // 4. Save ลง DB
+    // 4. Save ลง DB (ใช้ Entity)
     const newUser = this.usersRepository.create({
       name,
       email,
       username,
-      passwordHash, // NestJS จะ map ไปลง column password_hash อัตโนมัติ
+      passwordHash, // TypeORM จะ map ไปที่ column 'password_hash' ให้เองตาม Entity
     });
-
     await this.usersRepository.save(newUser);
+
     return { message: 'User registered successfully' };
   }
 
