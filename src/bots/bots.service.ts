@@ -41,6 +41,7 @@ export class BotsService {
       totalPnL: totalPnL, 
       tradeCount: bot.orderHistories.length,
       history: bot.orderHistories, // ส่งประวัติไปด้วยเผื่อ Frontend เอาไปพล็อตกราฟ
+      public: bot.public,
       policy: bot.policy ? bot.policy.config : null
     };
   }
