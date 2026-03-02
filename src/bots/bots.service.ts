@@ -13,7 +13,7 @@ export class BotsService {
   async findOneForDashboard(id: number): Promise<any> {
     const bot = await this.botRepository.findOne({ 
       where: { id },
-      relations: ['orderHistories'] // ต้องเชื่อมเอาประวัติมาคำนวณกำไร
+      relations: ['orderHistories', 'policy'] // ต้องเชื่อมเอาประวัติมาคำนวณกำไร
     });
 
     if (!bot) {
@@ -40,7 +40,8 @@ export class BotsService {
       createdAt: bot.createdAt,
       totalPnL: totalPnL, 
       tradeCount: bot.orderHistories.length,
-      history: bot.orderHistories // ส่งประวัติไปด้วยเผื่อ Frontend เอาไปพล็อตกราฟ
+      history: bot.orderHistories, // ส่งประวัติไปด้วยเผื่อ Frontend เอาไปพล็อตกราฟ
+      policy: bot.policy ? bot.policy.config : null
     };
   }
 }

@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne } from 'typeorm';
 import { OrderHistory } from './order-history.entity';
 import { User } from '../../users/entities/user.entity'; // ปลดคอมเมนต์ถ้าจะเชื่อมกับ User
+import { Policy } from './policy.entity';
 
 @Entity('bots')
 export class Bot {
@@ -48,4 +49,7 @@ export class Bot {
   // ความสัมพันธ์ 1 Bot มีหลาย OrderHistory
   @OneToMany(() => OrderHistory, orderHistory => orderHistory.bot)
   orderHistories: OrderHistory[];
+
+  @OneToOne(() => Policy, policy => policy.bot)
+  policy: Policy;
 }
