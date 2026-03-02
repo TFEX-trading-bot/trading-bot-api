@@ -10,6 +10,7 @@ import { User } from './users/entities/user.entity';
 import { BotsModule } from './bots/bots.module';
 import { Bot } from './bots/entities/bot.entity';
 import { OrderHistory } from './bots/entities/order-history.entity';
+import { Policy } from './bots/entities/policy.entity';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { OrderHistory } from './bots/entities/order-history.entity';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         url: configService.get('DATABASE_URL'),
-        entities: [User, Bot, OrderHistory], // ลงทะเบียน Entity ทั้งหมดที่ใช้ในโปรเจค
+        entities: [User, Bot, OrderHistory, Policy], // ลงทะเบียน Entity ทั้งหมดที่ใช้ในโปรเจค
         synchronize: true, // สร้างตารางอัตโนมัติ (ปิดเมื่อใช้ Migration จริงจัง)
         ssl: {
           rejectUnauthorized: true, // บังคับตรวจสอบ Certificate (เทียบเท่า verify-full)
