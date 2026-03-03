@@ -1,5 +1,6 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Put, Body } from '@nestjs/common';
 import { BotsService } from './bots.service';
+import { UpdateBotSettingsDto } from './dto/update-bot-config.dto';
 
 @Controller('bots')
 export class BotsController {
@@ -15,6 +16,14 @@ export class BotsController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.botsService.findOneForDashboard(+id);
+  }
+
+  @Put(':id')
+  updateSettings(
+    @Param('id') id: string, 
+    @Body() updateSettingsDto: UpdateBotSettingsDto
+  ) {
+    return this.botsService.updateBotSettings(+id, updateSettingsDto);
   }
 
   // ✅ เพิ่ม Endpoint นี้เพื่อให้Aดึงบอทตามรายคนได้

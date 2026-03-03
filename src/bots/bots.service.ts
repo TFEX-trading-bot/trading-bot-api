@@ -2,12 +2,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Bot } from './entities/bot.entity';
+import { UpdateBotSettingsDto } from './dto/update-bot-config.dto';
+import { Policy } from './entities/policy.entity';
 
 @Injectable()
 export class BotsService {
   constructor(
     @InjectRepository(Bot)
     private readonly botRepository: Repository<Bot>,
+
+    @InjectRepository(Policy)
+    private readonly policyRepository: Repository<Policy>,
   ) {}
 
   async findOneForDashboard(id: number): Promise<any> {
@@ -46,7 +51,40 @@ export class BotsService {
     };
   }
 
+  async updateBotSettings(id: number, dto: UpdateBotSettingsDto) {
+    // ดึง Bot และ Policy เดิมออกมาก่อน
+    const bot = await this.botRepository.findOne({ 
+      where: { id }, 
+      relations: ['policy'] 
+    });
 
+    if (!bot) throw new NotFoundException(`Bot with id ${id} not found`);
+
+    // --- อัปเดตตาราง Bot (public) ---
+    if (dto.public !== undefined) {
+      bot.public = dto.public;
+      await this.botRepository.save(bot);
+    }
+
+    // --- อัปเดตตาราง Policy (config -> risk) ---
+    if (dto.risk && bot.policy) {
+      // ดึง config เดิมออกมา (ถ้าไม่มีให้เป็น object เปล่า)
+      const currentConfig = bot.policy.config || {};
+      const currentRisk = currentConfig.risk || {};
+
+      // เอาค่า risk เดิม มารวม (Merge) กับค่า risk ใหม่ที่ส่งมา
+      // วิธีนี้ข้อมูล rules เดิมจะไม่หายไปครับ
+      const updatedRisk = { ...currentRisk, ...dto.risk };
+      currentConfig.risk = updatedRisk;
+
+      // ยัดกลับเข้าไป แล้วบันทึก
+      bot.policy.config = currentConfig;
+      await this.policyRepository.save(bot.policy);
+    }
+
+    return this.findOneForDashboard(id); 
+  }
+  
   async findAllByUser(userId: number): Promise<any[]> {
     const bots = await this.botRepository.find({
       where: { user: { id: userId } },
