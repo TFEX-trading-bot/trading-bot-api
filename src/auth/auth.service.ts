@@ -35,6 +35,7 @@ export class AuthService {
       username,
       passwordHash, 
       role,
+      subscription: { id: 1 } as any, // ✅ กำหนด Subscription เริ่มต้นเป็น ID 1
     });
     await this.usersRepository.save(newUser);
 
