@@ -38,28 +38,25 @@ export class AuthService {
   }
 
   // ✅ ฟังก์ชัน Login (แก้ไขให้ส่ง user_id ออกมาด้วย)
-  async login(email: string, password: string) {
-    // 1. ตรวจสอบข้อมูลผู้ใช้ในฐานข้อมูล
+    async login(email: string, password: string) {
     const user = await this.usersRepository.findOne({ where: { email } });
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // 2. เปรียบเทียบรหัสผ่าน
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // 3. สร้าง Token (Payload ต้องตรงกับที่ Python คาดหวัง)
     const payload = { sub: user.username, user_id: user.id, role: user.role };
     
-    // ✅ 4. ส่งข้อมูลกลับไปให้ Frontend (รวม user_id)
     return {
       access_token: this.jwtService.sign(payload),
       username: user.username,
       name: user.name,
-      user_id: user.id // เพิ่มบรรทัดนี้เพื่อส่งค่า ID จริง (เช่น 4) ไปที่ Frontend
+      user_id: user.id,
+      role: user.role 
     };
   }
 }
