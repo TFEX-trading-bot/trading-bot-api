@@ -13,54 +13,51 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // ✅ Register
+  // ✅ ฟังก์ชัน Register
   async register(name: string, email: string, password: string) {
-    // 1. เช็ค email ซ้ำ
     const existingUser = await this.usersRepository.findOne({ where: { email } });
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
 
-    // 2. Hash Password (ให้ตรงกับ Python Passlib)
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
-    
-    // 3. สร้าง Username จาก Email
     const username = email.split('@')[0];
 
-    // 4. Save ลง DB (ใช้ Entity)
     const newUser = this.usersRepository.create({
       name,
       email,
       username,
-      passwordHash, // TypeORM จะ map ไปที่ column 'password_hash' ให้เองตาม Entity
+      passwordHash,
     });
     await this.usersRepository.save(newUser);
 
     return { message: 'User registered successfully' };
   }
 
-  // ✅ Login
+  // ✅ ฟังก์ชัน Login (แก้ไขให้ส่ง user_id ออกมาด้วย)
   async login(email: string, password: string) {
-    // 1. หา User
+    // 1. ตรวจสอบข้อมูลผู้ใช้ในฐานข้อมูล
     const user = await this.usersRepository.findOne({ where: { email } });
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // 2. เช็ค Password
+    // 2. เปรียบเทียบรหัสผ่าน
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // 3. สร้าง Token (Payload ต้องตรงกับที่ Python คาดหวัง)
+    // 3. สร้าง JWT Payload
     const payload = { sub: user.username, user_id: user.id };
     
+    // ✅ 4. ส่งข้อมูลกลับไปให้ Frontend (รวม user_id)
     return {
       access_token: this.jwtService.sign(payload),
       username: user.username,
-      name: user.name
+      name: user.name,
+      user_id: user.id // เพิ่มบรรทัดนี้เพื่อส่งค่า ID จริง (เช่น 4) ไปที่ Frontend
     };
   }
 }
