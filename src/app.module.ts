@@ -6,17 +6,15 @@ import { PassportModule } from '@nestjs/passport';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthController } from './auth/auth.controller';
-import { AuthService } from './auth/auth.service';
 import { User } from './users/entities/user.entity';
-import { UsersModule } from './users/users.module'; // ✅ นำเข้า UsersModule
+import { UsersModule } from './users/users.module';
 import { BotsModule } from './bots/bots.module';
 import { Bot } from './bots/entities/bot.entity';
 import { OrderHistory } from './bots/entities/order-history.entity';
 import { Policy } from './bots/entities/policy.entity';
-import { JwtStrategy } from './auth/jwt.strategy';
-import { UsersController } from './users/users.controller';
-import { UsersService } from './users/users.service';
-import { RolesGuard } from './auth/roles.guard';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { Subscription } from './subscriptions/subscription.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -32,7 +30,7 @@ import { RolesGuard } from './auth/roles.guard';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         url: configService.get('DATABASE_URL'),
-        entities: [User, Bot, OrderHistory, Policy],
+        entities: [User, Bot, OrderHistory, Policy, Subscription],
         synchronize: true, 
         ssl: {
           rejectUnauthorized: true, 
@@ -40,18 +38,19 @@ import { RolesGuard } from './auth/roles.guard';
       }),
     }),
     
-    // ลงทะเบียน Repository หลัก
-    TypeOrmModule.forFeature([User, Bot, OrderHistory]), 
-    
     // 3. ตั้งค่า JWT Module
     JwtModule.register({
+      global: true, // ทำให้ JWT Module พร้อมใช้งานในทุก Module โดยไม่ต้อง import ซ้ำ
       secret: 'supersecretkey_change_me_in_production', 
       signOptions: { expiresIn: '1h' },
     }),
     PassportModule, 
     BotsModule,
+    SubscriptionsModule,
+    UsersModule,
+    AuthModule,
   ],
-  controllers: [AppController, AuthController, UsersController],
-  providers: [AppService, AuthService, JwtStrategy, UsersService, RolesGuard],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
