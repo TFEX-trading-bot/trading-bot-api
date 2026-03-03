@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, OneToMany } from 'typeorm';
+import { Bot } from '../../bots/entities/bot.entity';
 
 @Entity({ name: 'users' }) // ชื่อตารางต้องตรงกับ Python (users)
 export class User {
@@ -22,4 +23,7 @@ export class User {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @OneToMany(() => Bot, (bot) => bot.user)
+  bots: Bot[];
 }
