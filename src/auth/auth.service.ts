@@ -42,29 +42,26 @@ export class AuthService {
     return { message: 'User registered successfully' };
   }
 
-  // ✅ Login: ตรวจสอบสิทธิ์และส่งข้อมูลกลับให้ Frontend
-  async login(email: string, password: string) {
-    // 1. ตรวจสอบข้อมูลผู้ใช้ในฐานข้อมูลจาก Email
+  // ✅ ฟังก์ชัน Login (แก้ไขให้ส่ง user_id ออกมาด้วย)
+    async login(email: string, password: string) {
     const user = await this.usersRepository.findOne({ where: { email } });
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // 2. เปรียบเทียบ Password ที่ส่งมากับ Hash ในฐานข้อมูล
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // 3. สร้าง JWT Payload (ข้อมูลที่จะฝังอยู่ใน Token)
     const payload = { sub: user.username, user_id: user.id, role: user.role };
     
-    // ✅ 4. ส่งข้อมูลกลับไปให้ Frontend (รวมฟิลด์ user_id เพื่อใช้ดึงข้อมูลพอร์ต)
     return {
       access_token: this.jwtService.sign(payload),
       username: user.username,
       name: user.name,
-      user_id: user.id // ✨ จุดสำคัญที่จะทำให้ค่าใน LocalStorage ไม่เป็น undefined อีกต่อไป
+      user_id: user.id,
+      role: user.role 
     };
   }
 }
