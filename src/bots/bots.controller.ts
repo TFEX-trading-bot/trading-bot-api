@@ -19,4 +19,10 @@ export class BotsController {
   ) {
     return this.botsService.updateBotSettings(+id, updateSettingsDto);
   }
+
+  // ✅ เพิ่ม Endpoint นี้เพื่อให้Aดึงบอทตามรายคนได้
+  @Get('user/:userId')
+  async findAllByUser(@Param('userId') userId: string) {
+    return await this.botsService.findAllByUser(+userId);
+  }
 }
