@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Bot } from './entities/bot.entity';
 import { UpdateBotSettingsDto } from './dto/update-bot-config.dto';
 import { Policy } from './entities/policy.entity';
+import { User } from '../users/entities/user.entity';
+import { CreateBotDto } from './dto/create-bot.dto';
 
 @Injectable()
 export class BotsService {
@@ -13,7 +15,35 @@ export class BotsService {
 
     @InjectRepository(Policy)
     private readonly policyRepository: Repository<Policy>,
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
+
+  async create(userId: number, createBotDto: CreateBotDto) {
+    // 1. ดึงข้อมูล User พร้อม Subscription และรายการ Bots ที่มีอยู่
+    const user = await this.userRepository.findOne({ 
+      where: { id: userId }, 
+      relations: ['subscription', 'bots'] 
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    // 2. ตรวจสอบลิมิต (ถ้าไม่มี sub ให้เป็น 0 หรือตาม policy ของคุณ)
+    const limit = user.subscription ? user.subscription.botNumber : 0;
+    
+    if (user.bots.length >= limit) {
+      throw new BadRequestException(`You have reached the limit of ${limit} bots for your subscription.`);
+    }
+
+    // 3. สร้างบอทใหม่
+    const bot = this.botRepository.create({
+      ...createBotDto,
+      user,
+      status: 'STOPPED', // ค่าเริ่มต้น
+    });
+    return this.botRepository.save(bot);
+  }
 
   async findOneForDashboard(id: number): Promise<any> {
     const bot = await this.botRepository.findOne({ 

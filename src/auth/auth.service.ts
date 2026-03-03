@@ -13,24 +13,29 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // ✅ Register
+  // ✅ Register: สร้างบัญชีผู้ใช้ใหม่
   async register(name: string, email: string, password: string, role: string = 'user') {
-    // 1. เช็ค email ซ้ำ
+    // 1. ตรวจสอบว่า email นี้ถูกใช้งานไปแล้วหรือยัง
     const existingUser = await this.usersRepository.findOne({ where: { email } });
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
 
+    // 2. Hash Password เพื่อความปลอดภัย
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
+    
+    // 3. สร้าง Username เบื้องต้นจาก Email
     const username = email.split('@')[0];
 
+    // 4. บันทึกข้อมูลลงฐานข้อมูล
     const newUser = this.usersRepository.create({
       name,
       email,
       username,
-      passwordHash, // TypeORM จะ map ไปที่ column 'password_hash' ให้เองตาม Entity
+      passwordHash, 
       role,
+      subscription: { id: 1 } as any, // ✅ กำหนด Subscription เริ่มต้นเป็น ID 1
     });
     await this.usersRepository.save(newUser);
 
