@@ -21,6 +21,9 @@ export class User {
   @Column({ name: 'account_number', nullable: true })
   accountNumber: string;
 
+  @Column({ default: 'user' })
+  role: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

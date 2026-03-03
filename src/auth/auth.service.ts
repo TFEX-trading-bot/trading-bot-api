@@ -13,8 +13,9 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // ✅ ฟังก์ชัน Register
-  async register(name: string, email: string, password: string) {
+  // ✅ Register
+  async register(name: string, email: string, password: string, role: string = 'user') {
+    // 1. เช็ค email ซ้ำ
     const existingUser = await this.usersRepository.findOne({ where: { email } });
     if (existingUser) {
       throw new ConflictException('Email already exists');
@@ -28,7 +29,8 @@ export class AuthService {
       name,
       email,
       username,
-      passwordHash,
+      passwordHash, // TypeORM จะ map ไปที่ column 'password_hash' ให้เองตาม Entity
+      role,
     });
     await this.usersRepository.save(newUser);
 
@@ -49,8 +51,8 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // 3. สร้าง JWT Payload
-    const payload = { sub: user.username, user_id: user.id };
+    // 3. สร้าง Token (Payload ต้องตรงกับที่ Python คาดหวัง)
+    const payload = { sub: user.username, user_id: user.id, role: user.role };
     
     // ✅ 4. ส่งข้อมูลกลับไปให้ Frontend (รวม user_id)
     return {
