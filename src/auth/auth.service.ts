@@ -14,7 +14,7 @@ export class AuthService {
   ) {}
 
   // ✅ Register
-  async register(name: string, email: string, password: string) {
+  async register(name: string, email: string, password: string, role: string = 'user') {
     // 1. เช็ค email ซ้ำ
     const existingUser = await this.usersRepository.findOne({ where: { email } });
     if (existingUser) {
@@ -34,6 +34,7 @@ export class AuthService {
       email,
       username,
       passwordHash, // TypeORM จะ map ไปที่ column 'password_hash' ให้เองตาม Entity
+      role,
     });
     await this.usersRepository.save(newUser);
 
@@ -55,7 +56,7 @@ export class AuthService {
     }
 
     // 3. สร้าง Token (Payload ต้องตรงกับที่ Python คาดหวัง)
-    const payload = { sub: user.username, user_id: user.id };
+    const payload = { sub: user.username, user_id: user.id, role: user.role };
     
     return {
       access_token: this.jwtService.sign(payload),

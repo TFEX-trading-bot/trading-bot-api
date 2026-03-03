@@ -5,6 +5,12 @@ import { BotsService } from './bots.service';
 export class BotsController {
   constructor(private readonly botsService: BotsService) {}
 
+  // ✅ ดึงข้อมูลบอททั้งหมด (สำหรับ Admin)
+  @Get()
+  async findAll() {
+    return await this.botsService.findAll();
+  }
+
   // ดึงข้อมูลบอท 1 ตัว พร้อมคำนวณกำไรและแปลงสถานะ PAUSE/RUNNING
   @Get(':id')
   findOne(@Param('id') id: string) {
