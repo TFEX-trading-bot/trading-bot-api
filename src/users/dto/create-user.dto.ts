@@ -22,4 +22,8 @@ export class CreateUserDto {
 	@IsString({ message: 'Account number must be a string.' })
 	@IsNotEmpty({ message: 'Account number cannot be empty.' })
 	account_number: string;
+
+	@IsOptional()
+	@IsString()
+	role?: string;
 }

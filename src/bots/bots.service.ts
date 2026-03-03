@@ -92,26 +92,30 @@ export class BotsService {
       order: { id: 'DESC' }
     });
 
-    return bots.map(bot => {
-      // 1. คำนวณกำไรรวม (Total Profit) จาก OrderHistory
-      const totalPnL = bot.orderHistories.reduce(
-        (sum, order) => sum + Number(order.totalProfit), 
-        0
-      );
+    return bots.map(bot => this.mapBotData(bot));
+  }
 
-      // 2. คำนวณ % กำไร (ตัวอย่าง: เทียบกับจำนวนเงินตั้งต้น หรือใช้ค่าสะสม)
-      // ในที่นี้จะส่งค่า totalPnL ไปเป็น string format สำหรับ Change
-      const change = totalPnL >= 0 ? `+${totalPnL.toFixed(2)}` : `${totalPnL.toFixed(2)}`;
-      
-      // สมมติฐาน: การคำนวณ % อาจต้องมีทุนตั้งต้น แต่ในเบื้องต้นส่งค่าดิบไปก่อน
-      const changePct = `${((totalPnL / 100) * 100).toFixed(2)}%`; 
-
-      return {
-        ...bot,
-        change: change,
-        changePct: changePct,
-        totalPnL: totalPnL
-      };
+  async findAll(): Promise<any[]> {
+    const bots = await this.botRepository.find({
+      relations: ['orderHistories'],
+      order: { id: 'DESC' }
     });
+    return bots.map(bot => this.mapBotData(bot));
+  }
+
+  private mapBotData(bot: Bot) {
+    const totalPnL = bot.orderHistories.reduce(
+      (sum, order) => sum + Number(order.totalProfit), 
+      0
+    );
+    const change = totalPnL >= 0 ? `+${totalPnL.toFixed(2)}` : `${totalPnL.toFixed(2)}`;
+    const changePct = `${((totalPnL / 100) * 100).toFixed(2)}%`; 
+
+    return {
+      ...bot,
+      change,
+      changePct,
+      totalPnL
+    };
   }
 }

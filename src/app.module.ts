@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthController } from './auth/auth.controller';
@@ -12,6 +13,10 @@ import { BotsModule } from './bots/bots.module';
 import { Bot } from './bots/entities/bot.entity';
 import { OrderHistory } from './bots/entities/order-history.entity';
 import { Policy } from './bots/entities/policy.entity';
+import { JwtStrategy } from './auth/jwt.strategy';
+import { UsersController } from './users/users.controller';
+import { UsersService } from './users/users.service';
+import { RolesGuard } from './auth/roles.guard';
 
 @Module({
   imports: [
@@ -42,13 +47,11 @@ import { Policy } from './bots/entities/policy.entity';
     JwtModule.register({
       secret: 'supersecretkey_change_me_in_production', 
       signOptions: { expiresIn: '1h' },
-    }), 
-
-    // ✅ 4. ลงทะเบียน Modules ทั้งหมดเพื่อให้ NestJS รู้จัก Routes
+    }),
+    PassportModule, 
     BotsModule,
-    UsersModule, // 👈 เพิ่มจุดนี้เพื่อให้ /users/:id ใช้งานได้จริง
   ],
-  controllers: [AppController, AuthController],
-  providers: [AppService, AuthService],
+  controllers: [AppController, AuthController, UsersController],
+  providers: [AppService, AuthService, JwtStrategy, UsersService, RolesGuard],
 })
 export class AppModule {}
