@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne, ManyToOne, JoinColumn } from 'typeorm';
 import { OrderHistory } from './order-history.entity';
 import { User } from '../../users/entities/user.entity'; // ปลดคอมเมนต์ถ้าจะเชื่อมกับ User
 import { Policy } from './policy.entity';
@@ -52,4 +52,9 @@ export class Bot {
 
   @OneToOne(() => Policy, policy => policy.bot)
   policy: Policy;
+
+  // ✅ เพิ่มความสัมพันธ์ Many-to-One กลับมาหา User
+  @ManyToOne(() => User, (user) => user.bots)
+  @JoinColumn({ name: 'user_id' }) // ต้องชื่อเดียวกับใน DB Studio (user_id)
+  user: User;
 }

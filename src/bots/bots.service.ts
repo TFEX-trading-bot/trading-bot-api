@@ -45,4 +45,12 @@ export class BotsService {
       policy: bot.policy ? bot.policy.config : null
     };
   }
+
+  async findAllByUser(userId: number): Promise<Bot[]> {
+  return await this.botRepository.find({
+    // ✅ หาบอทที่ฟิลด์ user.id ตรงกับ userId ที่ส่งมา
+    where: { user: { id: userId } }, 
+    order: { id: 'DESC' } // เอาบอทล่าสุดขึ้นก่อน
+  });
+}
 }
