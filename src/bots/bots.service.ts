@@ -46,11 +46,34 @@ export class BotsService {
     };
   }
 
-  async findAllByUser(userId: number): Promise<Bot[]> {
-  return await this.botRepository.find({
-    // ✅ หาบอทที่ฟิลด์ user.id ตรงกับ userId ที่ส่งมา
-    where: { user: { id: userId } }, 
-    order: { id: 'DESC' } // เอาบอทล่าสุดขึ้นก่อน
-  });
-}
+
+  async findAllByUser(userId: number): Promise<any[]> {
+    const bots = await this.botRepository.find({
+      where: { user: { id: userId } },
+      relations: ['orderHistories'], // ✅ ต้องดึงประวัติการเทรดมาด้วย
+      order: { id: 'DESC' }
+    });
+
+    return bots.map(bot => {
+      // 1. คำนวณกำไรรวม (Total Profit) จาก OrderHistory
+      const totalPnL = bot.orderHistories.reduce(
+        (sum, order) => sum + Number(order.totalProfit), 
+        0
+      );
+
+      // 2. คำนวณ % กำไร (ตัวอย่าง: เทียบกับจำนวนเงินตั้งต้น หรือใช้ค่าสะสม)
+      // ในที่นี้จะส่งค่า totalPnL ไปเป็น string format สำหรับ Change
+      const change = totalPnL >= 0 ? `+${totalPnL.toFixed(2)}` : `${totalPnL.toFixed(2)}`;
+      
+      // สมมติฐาน: การคำนวณ % อาจต้องมีทุนตั้งต้น แต่ในเบื้องต้นส่งค่าดิบไปก่อน
+      const changePct = `${((totalPnL / 100) * 100).toFixed(2)}%`; 
+
+      return {
+        ...bot,
+        change: change,
+        changePct: changePct,
+        totalPnL: totalPnL
+      };
+    });
+  }
 }
