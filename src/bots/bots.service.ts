@@ -40,6 +40,7 @@ export class BotsService {
     return {
       id: bot.id,
       stock: bot.stock,
+      botType: bot.botType,
       status: displayStatus, 
       copyRate: bot.copyRate,
       createdAt: bot.createdAt,
