@@ -149,4 +149,41 @@ export class BotsService {
       totalPnL
     };
   }
+
+  async findPublicBot(id: number): Promise<any> {
+    const bot = await this.botRepository.findOne({ 
+      // ✅ เงื่อนไขสำคัญ: ต้องตรง ID และ public ต้องเป็น true
+      where: { 
+        id: id, 
+        public: true 
+      },
+      relations: ['policy']
+    });
+
+    // ถ้าไม่เจอบอท หรือบอทตัวนั้น public เป็น false จะเด้ง Error 404
+    if (!bot) {
+      throw new NotFoundException(`Public bot with id ${id} not found or is private`);
+    }
+
+    // Return เฉพาะข้อมูลที่ต้องการ
+    return {
+      id: bot.id,
+      stock: bot.stock,
+      policy: bot.policy ? bot.policy.config : null
+    };
+  }
+
+  async incrementCopyRate(id: number): Promise<any> {
+    // 1. ตรวจสอบก่อนว่ามีบอทไอดีนี้จริงไหม
+    const bot = await this.botRepository.findOne({ where: { id } });
+    if (!bot) {
+      throw new NotFoundException(`Bot with id ${id} not found`);
+    }
+
+    // 2. ใช้คำสั่ง increment เพื่อเพิ่มค่า copyRate ขึ้นทีละ 1 (Atomic operation)
+    await this.botRepository.increment({ id }, 'copyRate', 1);
+
+    // 3. ส่งข้อมูลล่าสุดกลับไป
+    return this.findOneForDashboard(id);
+  }
 }

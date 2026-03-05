@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Put, Body, Post, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Param, Put, Body, Post, UseGuards, Request, Patch } from '@nestjs/common';
 import { BotsService } from './bots.service';
 import { UpdateBotSettingsDto } from './dto/update-bot-config.dto';
 import { CreateBotDto } from './dto/create-bot.dto';
@@ -39,5 +39,15 @@ export class BotsController {
   @Get('user/:userId')
   async findAllByUser(@Param('userId') userId: string) {
     return await this.botsService.findAllByUser(+userId);
+  }
+
+  @Get('public/:id')
+  findPublicOne(@Param('id') id: string) {
+    return this.botsService.findPublicBot(+id);
+  }
+
+  @Patch(':id/copy')
+  incrementCopy(@Param('id') id: string) {
+    return this.botsService.incrementCopyRate(+id);
   }
 }
