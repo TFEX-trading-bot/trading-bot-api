@@ -16,4 +16,9 @@ export class CreateSubscriptionDto {
   @IsNumber()
   @Min(1)
   duration: number; // ระยะเวลา (เช่น จำนวนวัน)
+
+  @IsNumber()
+  @IsNotEmpty()
+  @Min(1, { message: 'Bot number must be at least 1.' })
+  botNumber: number;
 }

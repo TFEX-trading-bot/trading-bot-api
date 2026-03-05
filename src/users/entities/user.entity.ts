@@ -37,4 +37,7 @@ export class User {
 
   @Column({ name: 'subscription_end_date', nullable: true })
   subscriptionEndDate: Date;
+
+  @Column({ name: 'subscription_start_date', nullable: true })
+  subscriptionStartDate: Date;
 }

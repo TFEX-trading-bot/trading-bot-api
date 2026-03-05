@@ -15,6 +15,8 @@ import { Policy } from './bots/entities/policy.entity';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { Subscription } from './subscriptions/subscription.entity';
 import { AuthModule } from './auth/auth.module';
+import { PaymentsModule } from './payments/payments.module';
+import { PaymentTransaction } from './payments/payment-transaction.entity';
 
 @Module({
   imports: [
@@ -30,7 +32,7 @@ import { AuthModule } from './auth/auth.module';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         url: configService.get('DATABASE_URL'),
-        entities: [User, Bot, OrderHistory, Policy, Subscription],
+        entities: [User, Bot, OrderHistory, Policy, Subscription, PaymentTransaction],
         synchronize: true, 
         ssl: {
           rejectUnauthorized: true, 
@@ -49,6 +51,7 @@ import { AuthModule } from './auth/auth.module';
     SubscriptionsModule,
     UsersModule,
     AuthModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
