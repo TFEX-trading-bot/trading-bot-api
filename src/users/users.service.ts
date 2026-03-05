@@ -4,12 +4,15 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { Subscription } from '../subscriptions/subscription.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Subscription)
+    private readonly subscriptionRepository: Repository<Subscription>,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -36,5 +39,27 @@ export class UsersService {
   async remove(id: number): Promise<void> {
     const res = await this.userRepository.delete({ id });
     if (res.affected === 0) throw new NotFoundException(`User with id ${id} not found`);
+  }
+
+  async subscribe(userId: number, subscriptionId: number): Promise<User> {
+    // 1. ค้นหา User และ Subscription ที่ต้องการ
+    const user = await this.findOne(userId);
+    const subscription = await this.subscriptionRepository.findOne({ where: { id: subscriptionId } });
+
+    if (!subscription) {
+      throw new NotFoundException(`Subscription with id ${subscriptionId} not found`);
+    }
+
+    // 2. คำนวณวันเริ่มต้นและวันสิ้นสุด
+    const startDate = new Date();
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + subscription.duration);
+
+    // 3. อัปเดตข้อมูล Subscription ของ User
+    user.subscription = subscription;
+    user.subscriptionStartDate = startDate;
+    user.subscriptionEndDate = endDate;
+
+    return this.userRepository.save(user);
   }
 }
