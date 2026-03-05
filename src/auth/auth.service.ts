@@ -36,7 +36,8 @@ export class AuthService {
     let startDate: Date | null = null;
     let endDate: Date | null = null;
 
-    if (defaultSub) {
+    // หากมี Subscription และไม่ใช่ Free Plan (ID 1) ให้คำนวณวันหมดอายุ
+    if (defaultSub && defaultSub.id !== 1) {
       startDate = new Date();
       endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + defaultSub.duration);

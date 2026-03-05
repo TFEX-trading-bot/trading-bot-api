@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PassportModule } from '@nestjs/passport';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -25,6 +26,9 @@ import { PaymentTransaction } from './payments/payment-transaction.entity';
       isGlobal: true,
     }),
 
+    // Import ScheduleModule to enable Cron Jobs
+    ScheduleModule.forRoot(),
+
     // 2. เชื่อมต่อ Database ผ่าน TypeORM
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -33,7 +37,7 @@ import { PaymentTransaction } from './payments/payment-transaction.entity';
         type: 'postgres',
         url: configService.get('DATABASE_URL'),
         entities: [User, Bot, OrderHistory, Policy, Subscription, PaymentTransaction],
-        synchronize: true, 
+        synchronize: false, 
         ssl: {
           rejectUnauthorized: true, 
         },
