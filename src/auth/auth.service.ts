@@ -4,12 +4,15 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../users/entities/user.entity';
+import { Subscription } from '../subscriptions/subscription.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(Subscription)
+    private subscriptionRepository: Repository<Subscription>,
     private jwtService: JwtService,
   ) {}
 
@@ -28,14 +31,26 @@ export class AuthService {
     // 3. สร้าง Username เบื้องต้นจาก Email
     const username = email.split('@')[0];
 
-    // 4. บันทึกข้อมูลลงฐานข้อมูล
+    // ดึงข้อมูล Subscription เริ่มต้น (ID 1) เพื่อคำนวณวันหมดอายุ
+    const defaultSub = await this.subscriptionRepository.findOne({ where: { id: 1 } });
+    let startDate: Date | null = null;
+    let endDate: Date | null = null;
+
+    if (defaultSub) {
+      startDate = new Date();
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + defaultSub.duration);
+    }
+
     const newUser = this.usersRepository.create({
       name,
       email,
       username,
       passwordHash, 
       role,
-      subscription: { id: 1 } as any, // ✅ กำหนด Subscription เริ่มต้นเป็น ID 1
+      subscription: defaultSub,
+      subscriptionStartDate: startDate,
+      subscriptionEndDate: endDate,
     });
     await this.usersRepository.save(newUser);
 

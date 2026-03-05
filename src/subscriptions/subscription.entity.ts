@@ -25,4 +25,7 @@ export class Subscription {
 
   @Column({ name: 'bot_number', default: 1 })
   botNumber: number;
+
+  @Column({ default: 'monthly' })
+  frequency: string; // 'monthly', 'yearly'
 }
