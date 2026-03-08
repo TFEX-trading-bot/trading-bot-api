@@ -83,7 +83,6 @@ export class BotsService {
   }
 
   async updateBotSettings(id: number, dto: UpdateBotSettingsDto) {
-    // ดึง Bot และ Policy เดิมออกมาก่อน
     const bot = await this.botRepository.findOne({ 
       where: { id }, 
       relations: ['policy'] 
@@ -97,19 +96,20 @@ export class BotsService {
       await this.botRepository.save(bot);
     }
 
-    // --- อัปเดตตาราง Policy (config -> risk) ---
-    if (dto.risk && bot.policy) {
-      // ดึง config เดิมออกมา (ถ้าไม่มีให้เป็น object เปล่า)
+    // --- อัปเดตตาราง Policy (config) ทั้งก้อน ---
+    if (dto.policy && bot.policy) {
       const currentConfig = bot.policy.config || {};
-      const currentRisk = currentConfig.risk || {};
+      
+      // นำ keys ใหม่ทั้งหมดที่ส่งมา ไปรวมกับของเดิม
+      const updatedConfig = { ...currentConfig, ...dto.policy };
 
-      // เอาค่า risk เดิม มารวม (Merge) กับค่า risk ใหม่ที่ส่งมา
-      // วิธีนี้ข้อมูล rules เดิมจะไม่หายไปครับ
-      const updatedRisk = { ...currentRisk, ...dto.risk };
-      currentConfig.risk = updatedRisk;
+      // ทริกพิเศษ: ถ้ามีการส่ง "risk" มาด้วย ต้องระวังไม่ให้มันไปทับของเดิมทั้งก้อน 
+      // (เผื่อเขาส่งมาแค่ risk_pct อย่างเดียว) ให้ทำการ Merge เจาะจงเฉพาะ risk อีกรอบ
+      if (dto.policy.risk && currentConfig.risk) {
+        updatedConfig.risk = { ...currentConfig.risk, ...dto.policy.risk };
+      }
 
-      // ยัดกลับเข้าไป แล้วบันทึก
-      bot.policy.config = currentConfig;
+      bot.policy.config = updatedConfig;
       await this.policyRepository.save(bot.policy);
     }
 

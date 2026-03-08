@@ -1,4 +1,4 @@
-import { IsBoolean, IsOptional, IsNumber, IsString, ValidateNested } from 'class-validator';
+import { IsBoolean, IsOptional, IsNumber, IsString, ValidateNested, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
 
 // สร้าง Class ย่อยสำหรับ Validate ข้อมูลข้างใน "risk"
@@ -18,7 +18,6 @@ export class UpdateBotSettingsDto {
 
   // รับค่า Object "risk"
   @IsOptional()
-  @ValidateNested()
-  @Type(() => RiskSettingsDto)
-  risk?: RiskSettingsDto;
+  @IsObject()
+  policy?: any;
 }
