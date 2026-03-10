@@ -111,6 +111,23 @@ export class BotsService {
 
       bot.policy.config = updatedConfig;
       await this.policyRepository.save(bot.policy);
+
+      // 🚀 [เพิ่มใหม่] สะกิด FastAPI ให้ Reload กลยุทธ์ผ่าน Redis
+      try {
+        // เปลี่ยน URL เป็นที่อยู่ของ FastAPI ของคุณ (เช่น http://localhost:8000 ถ้าใช้ในเครื่อง)
+        // ถ้าใช้ Docker Compose อาจจะต้องเป็นชื่อ Service เช่น http://manager-api:8000
+        const fastApiUrl = `http://localhost:8000/bot/${id}/reload`; 
+        
+        await fetch(fastApiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        
+        console.log(`✅ [NestJS] Notified FastAPI to reload policy for bot ${id}`);
+      } catch (error) {
+        // แค่ Log ไว้เผื่อ FastAPI ร่วง แต่ให้เซฟข้อมูลลง DB สำเร็จอยู่ดี
+        console.error(`❌ [NestJS] Failed to notify FastAPI for bot ${id}:`, error.message);
+      }
     }
 
     return this.findOneForDashboard(id); 
