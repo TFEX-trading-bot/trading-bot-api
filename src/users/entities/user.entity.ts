@@ -35,9 +35,9 @@ export class User {
   @JoinColumn({ name: 'subscription_id' })
   subscription: Subscription;
 
-  @Column({ name: 'subscription_end_date', nullable: true })
+  @Column({ type: 'timestamp', name: 'subscription_end_date', nullable: true })
   subscriptionEndDate: Date;
 
-  @Column({ name: 'subscription_start_date', nullable: true })
+  @Column({ type: 'timestamp', name: 'subscription_start_date', nullable: true })
   subscriptionStartDate: Date;
 }

@@ -57,6 +57,15 @@ export class PaymentsService {
     }
   }
 
+  // ✅ ดึงประวัติการทำรายการชำระเงินของผู้ใช้งาน
+  async getUserPaymentHistory(userId: number) {
+    return this.paymentRepo.find({
+      where: { userId },
+      relations: ['subscription'], // ดึงข้อมูลแพ็กเกจมาแสดงด้วย
+      order: { createdAt: 'DESC' }, // เรียงจากล่าสุดไปเก่าสุด
+    });
+  }
+
   async handleWebhook(payload: any) {
     // Omise sends an event object
     if (payload.object !== 'event' || !payload.data) return;
