@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../users/entities/user.entity';
 import { Subscription } from '../subscriptions/subscription.entity';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -17,7 +18,9 @@ export class AuthService {
   ) {}
 
   // ✅ Register: สร้างบัญชีผู้ใช้ใหม่
-  async register(name: string, email: string, password: string, role: string = 'user') {
+  async register(registerDto: RegisterDto) {
+    const { name, email, password, role = 'user' } = registerDto;
+
     // 1. ตรวจสอบว่า email นี้ถูกใช้งานไปแล้วหรือยัง
     const existingUser = await this.usersRepository.findOne({ where: { email } });
     if (existingUser) {
@@ -31,7 +34,8 @@ export class AuthService {
     // 3. สร้าง Username เบื้องต้นจาก Email
     const username = email.split('@')[0];
 
-    // ดึงข้อมูล Subscription เริ่มต้น (ID 1) เพื่อคำนวณวันหมดอายุ
+    // BEST PRACTICE: หลีกเลี่ยง Magic Number (ID 1) 
+    // หากเป็นไปได้ในอนาคต ควรเปลี่ยนไปใช้ where: { isDefault: true } หรือ where: { name: 'Free' }
     const defaultSub = await this.subscriptionRepository.findOne({ where: { id: 1 } });
     let startDate: Date | null = null;
     let endDate: Date | null = null;
