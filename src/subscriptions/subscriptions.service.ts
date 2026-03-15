@@ -29,4 +29,11 @@ export class SubscriptionsService {
     Object.assign(subscription, updateSubscriptionDto);
     return this.subscriptionRepository.save(subscription);
   }
+
+  async remove(id: number): Promise<void> {
+    const result = await this.subscriptionRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Subscription #${id} not found`);
+    }
+  }
 }
