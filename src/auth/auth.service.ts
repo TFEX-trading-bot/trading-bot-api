@@ -37,12 +37,11 @@ export class AuthService {
     // BEST PRACTICE: หลีกเลี่ยง Magic Number (ID 1) 
     // หากเป็นไปได้ในอนาคต ควรเปลี่ยนไปใช้ where: { isDefault: true } หรือ where: { name: 'Free' }
     const defaultSub = await this.subscriptionRepository.findOne({ where: { id: 1 } });
-    let startDate: Date | null = null;
+    let startDate: Date | null = new Date(); // กำหนดวันที่เริ่มต้นเป็นเวลาปัจจุบันเสมอ
     let endDate: Date | null = null;
 
-    // หากมี Subscription และไม่ใช่ Free Plan (ID 1) ให้คำนวณวันหมดอายุ
-    if (defaultSub && defaultSub.id !== 1) {
-      startDate = new Date();
+    // หากแพ็กเกจมีระยะเวลา (duration > 0) ให้คำนวณวันหมดอายุด้วย
+    if (defaultSub && defaultSub.duration > 0) {
       endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + defaultSub.duration);
     }
