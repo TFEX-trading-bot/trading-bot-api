@@ -26,6 +26,29 @@ export class PaymentsService {
         secretKey: process.env.OMISE_SECRET_KEY,
       });
 
+      // 1. เช็คว่ามีรายการที่กำลัง Pending อยู่หรือไม่สำหรับแพ็กเกจนี้
+      const existingPending = await this.paymentRepo.findOne({
+        where: { userId, subscriptionId, status: PaymentStatus.PENDING },
+      });
+
+      if (existingPending && existingPending.gatewayTransactionId) {
+        // ดึงข้อมูล Charge เดิมจาก Omise เพื่อดึง QR Code เดิมมาแสดง
+        const existingCharge = await omise.charges.retrieve(existingPending.gatewayTransactionId);
+        
+        if (existingCharge && existingCharge.status === 'pending' && existingCharge.source) {
+          return {
+            transactionId: existingPending.id,
+            qrImage: existingCharge.source.scannable_code.image.download_uri,
+            qrRaw: existingCharge.source.scannable_code.payload,
+            amount: existingPending.amount,
+          };
+        } else if (existingCharge && existingCharge.status !== 'pending') {
+          // หากในระบบ Omise ไม่ได้ pending แล้ว (เช่น หมดอายุ) ให้อัปเดต DB แล้วให้ระบบสร้างใหม่
+          existingPending.status = PaymentStatus.FAILED;
+          await this.paymentRepo.save(existingPending);
+        }
+      }
+
       // Create Charge (PromptPay)
       const charge = await omise.charges.create({
         amount: Math.round(Number(subscription.price) * 100), // Convert to satang
@@ -68,7 +91,8 @@ export class PaymentsService {
 
   async handleWebhook(payload: any) {
     // Omise sends an event object
-    if (payload.object !== 'event' || !payload.data) return;
+    // แนะนำให้เช็ค payload.key เพื่อให้รับเฉพาะ Event ที่การทำรายการเสร็จสิ้นแล้ว
+    if (payload.object !== 'event' || !payload.data || payload.key !== 'charge.complete') return;
 
     const data = payload.data;
 
